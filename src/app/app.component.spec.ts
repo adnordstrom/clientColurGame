@@ -1,29 +1,48 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture,TestBed,fakeAsync,tick } from '@angular/core/testing';
 import { AppComponent } from './app.component';
-
+import { Card } from './models/card';
 describe('AppComponent', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  let component: AppComponent;
+  let fixture: ComponentFixture<AppComponent>;
+
+  const mockDeck: Card[] = [
+    { id: 1, colour: 'heart',  isRevealed: false },
+    { id: 2, colour: 'diamond',  isRevealed: false },
+    { id: 3, colour: 'heart', isRevealed: false },
+    { id: 4, colour: 'spade', isRevealed: false },
+  ];
+  beforeEach(() => {
+    TestBed.configureTestingModule({
       imports: [AppComponent],
     }).compileComponents();
+    fixture = TestBed.createComponent(AppComponent);
+    component = fixture.componentInstance;
+
+    
+    component.shuffledDeck = mockDeck;
+    component.selectedCards = [];
+    component.points = 0;
+    component.disableCardSelection = false;
+
+
   });
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
+  it('should increase points by one if selected cards are matching', fakeAsync(() => {
+    component.selectedCards = [mockDeck[0], mockDeck[2]]; // Both cards have the 'heart' colour
+    component.checkMatch();
 
-  it(`should have the 'clientColurGame' title`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('clientColurGame');
-  });
+    tick(2000); // Fast-forward the timeout
 
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, clientColurGame');
-  });
+    expect(component.points).toBe(1);
+  }));
+  it('should deduct one point if selected cards are not matching', fakeAsync(() => {
+    component.selectedCards = [mockDeck[0], mockDeck[1]]; // Different colours
+    component.checkMatch();
+
+    tick(2000); // Fast-forward the timeout
+
+    expect(component.points).toBe(-1);
+  }));
+
+
 });
